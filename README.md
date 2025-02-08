@@ -159,9 +159,6 @@ python main.py
 ## ⚙️ Configuración del entorno
 ### 📌 **MongoDB Connection**
 En el archivo `.env`, agregar la conexión a la base de datos MongoDB:
-```env
-DBCONN=mongodb+srv://usuario:password@cluster.mongodb.net/
-```
 
 ---
 
