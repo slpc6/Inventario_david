@@ -31,7 +31,7 @@ def agregar_objeto(item: Inventario, collenction=Depends(get_client)) -> JSONRes
 
     :args:
         - item: Objeto que sera insertado y que cuenta con los campos prensente en modelo/inventario.
-        - collection: intancia de mongo.
+        - collection: instancia de mongo.
 
     :Returns:
         Un Jsonresponse con un mensaje indicando si se pudo registrar correctamente el mensaje.
@@ -46,7 +46,6 @@ def agregar_objeto(item: Inventario, collenction=Depends(get_client)) -> JSONRes
 
 @app.get(path='/listar-inventario',
          description="Muestra todos los objetos presentes en el inventario",
-         response_description="",
          response_model=List[Inventario],
          status_code=status.HTTP_200_OK
          )
@@ -54,7 +53,7 @@ def listar_inventario(collection=Depends(get_client)) -> JSONResponse:
     """Permite listar todos los objetos registrados en la base de datos.
 
     :args:
-        - item: Objeto que sera insertado y que cuenta con los campos prensente en modelo/inventario.
+        - collection: instancia de mongo.
     :returns:
         Un Jsonresponse con la lista de los diferentes objetos que tiene la base de datos,
         pued estar vacia.
@@ -76,7 +75,14 @@ def listar_inventario(collection=Depends(get_client)) -> JSONResponse:
          response_model=Inventario,
          status_code=status.HTTP_200_OK
          )
-def listar_inventario(nombre: str, collection=Depends(get_client)):
+def listar_inventario(nombre: str, collection=Depends(get_client)) -> JSONResponse | Inventario:
+    """Permite consultar un objeto especifico por su nombre
+    :args:
+        - nombre: nombre del objeto que quiere ser consultado
+        - collection: instancia de mongo.
+    :returns:
+        el producto encontrado o un Jsonresponse con un mejsaje de error
+    """
     try:
         producto = collection.find_one({"nombre": nombre}, {"_id": 0})
         if not producto:
@@ -87,22 +93,46 @@ def listar_inventario(nombre: str, collection=Depends(get_client)):
     return producto
 
 
-@app.delete("/inventario/{nombre}",
-            response_model=dict)
-def eliminar_inventario(nombre: str, collection=Depends(get_client)):
-    result = collection.delete_one({"nombre": nombre})
+@app.delete('/eliminar-objeto/{nombre}',
+            response_model=dict,
+            status_code=status.HTTP_200_OK
+            )
+def eliminar_inventario(nombre: str, collection=Depends(get_client)) -> JSONResponse:
+    """Permite eliminar un objeto presente en el inventario.
+
+    :args:
+        - nombre: nombre del objeto que se quiere eliminar
+        - collection: instancia de mongo.
+    :returns:
+        un Jsonresponse con un mensaje de exito o fallo en la eliminacion.
+    """
+    result = collection.delete_one({'nombre': nombre})
     if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Producto no encontrado")
-    return {"mensaje": f"Producto '{nombre}' eliminado"}
+        return JSONResponse({'msg': 'Producto no encontrado'}, status_code=404)
+    return {'mensaje': f'Producto "{nombre}" eliminado'}
 
 
-@app.put(path='/actualizar-objeto',
-         description="Saluda",
-         response_description="Texto plano con saludo",
-         status_code=status.HTTP_200_OK
-         )
-def menu() -> str:
-    return 'Hola mundo'
+@app.put(path='/actualizar-objeto/{nombre}',
+        status_code=status.HTTP_200_OK,
+        response_model=dict
+        )
+def actualizar_objeto(nombre: str, item: Inventario, collection=Depends(get_client)) -> JSONResponse:
+    try:
+        item_dict = item.model_dump()
+        item_dict["estado"] = item.estado.value
+        item_dict["tipo"] = item.tipo.value
+
+        if isinstance(item.imagen, bytes):
+            item_dict["imagen"] = item.imagen.decode('utf-8', errors='ignore')
+        
+        result = collection.update_one({"nombre": nombre}, {"$set": item_dict})
+        if result.matched_count == 0:
+            return JSONResponse({'msg': 'Producto no encontrado'}, status_code=404)
+    except Exception as e:
+        print(e)
+        return JSONResponse({'msg': 'Ocurrio un error inesperado al momento de actualizar el objeto.'},
+                            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    return JSONResponse({'msg': f'{nombre} actualizado exitosamente'}, status_code=status.HTTP_200_OK)
 
 
 if __name__ == '__main__':
