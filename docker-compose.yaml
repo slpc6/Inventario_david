@@ -19,6 +19,6 @@ services:
       - back
 
 networks:
-  mongodb-net:
+  inventario-net:
     name: inventario-net  # Define una red
     driver: bridge
