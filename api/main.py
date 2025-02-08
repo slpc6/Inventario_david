@@ -139,4 +139,4 @@ if __name__ == '__main__':
     """
     Punto de entrada principal para ejecutar la aplicación con Uvicorn.
     """
-    uvicorn.run(app="main:app", host="localhost", port=8080, reload=True)
+    uvicorn.run(app="main:app", host="0.0.0.0", port=8080, reload=True)
