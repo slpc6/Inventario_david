@@ -3,7 +3,7 @@
 #External libraries
 import uvicorn
 
-from fastapi import FastAPI, status, Depends
+from fastapi import FastAPI, Depends
 from fastapi.responses import JSONResponse
 from typing import List
 
@@ -23,7 +23,7 @@ app = FastAPI(
 @app.post(path='/agregar-objeto',
          description='Agrega un objeto al inventario.',
          response_description='Mensaje de OK',
-         status_code=status.HTTP_201_CREATED,
+         status_code=201,
          response_model=Inventario
          )
 def agregar_objeto(item: Inventario, collenction=Depends(get_client)) -> JSONResponse:
@@ -38,16 +38,16 @@ def agregar_objeto(item: Inventario, collenction=Depends(get_client)) -> JSONRes
 
     """
     if collenction.find_one({'nombre': item.nombre}):
-        return  JSONResponse({'msg': 'Este objeto ya esta registrado.'}, status_code=status.HTTP_400_BAD_REQUEST)
+        return  JSONResponse({'msg': 'Este objeto ya esta registrado.'}, status_code=400)
 
     result = collenction.insert_one(item.model_dump())
-    return JSONResponse({'msg': 'OK', 'id': str(result.inserted_id)}, status_code=status.HTTP_201_CREATED)
+    return JSONResponse({'msg': 'OK', 'id': str(result.inserted_id)}, status_code=201)
 
 
 @app.get(path='/listar-inventario',
          description="Muestra todos los objetos presentes en el inventario",
          response_model=List[Inventario],
-         status_code=status.HTTP_200_OK
+         status_code=200
          )
 def listar_inventario(collection=Depends(get_client)) -> JSONResponse:
     """Permite listar todos los objetos registrados en la base de datos.
@@ -66,14 +66,14 @@ def listar_inventario(collection=Depends(get_client)) -> JSONResponse:
         
     except Exception as e:
         print(e)
-        return JSONResponse({'msg': 'Ocurrio un Error inesperado'}, status_code=status.HTTP_400_BAD_REQUEST)
+        return JSONResponse({'msg': 'Ocurrio un Error inesperado'}, status_code=400)
     return productos
 
 
 @app.get(path='/listar-objeto/{nombre}',
          description="Muestra uno de los objetos presentes en el inventario",
          response_model=Inventario,
-         status_code=status.HTTP_200_OK
+         status_code=200
          )
 def listar_inventario(nombre: str, collection=Depends(get_client)) -> JSONResponse | Inventario:
     """Permite consultar un objeto especifico por su nombre
@@ -89,13 +89,13 @@ def listar_inventario(nombre: str, collection=Depends(get_client)) -> JSONRespon
             return JSONResponse({'msg': 'Producto no encontrado'}, status_code=404)
     except Exception as e:
         print(e)
-        return JSONResponse({'msg':'Ocurrio un Error inesperado'}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return JSONResponse({'msg':'Ocurrio un Error inesperado'}, status_code=500)
     return producto
 
 
 @app.delete('/eliminar-objeto/{nombre}',
             response_model=dict,
-            status_code=status.HTTP_200_OK
+            status_code=200
             )
 def eliminar_inventario(nombre: str, collection=Depends(get_client)) -> JSONResponse:
     """Permite eliminar un objeto presente en el inventario.
@@ -109,11 +109,11 @@ def eliminar_inventario(nombre: str, collection=Depends(get_client)) -> JSONResp
     result = collection.delete_one({'nombre': nombre})
     if result.deleted_count == 0:
         return JSONResponse({'msg': 'Producto no encontrado'}, status_code=404)
-    return {'mensaje': f'Producto "{nombre}" eliminado'}
+    return JSONResponse({'msg': f'Producto "{nombre}" eliminado'}, status_code = 200)
 
 
 @app.put(path='/actualizar-objeto/{nombre}',
-        status_code=status.HTTP_200_OK,
+        status_code=200,
         response_model=dict
         )
 def actualizar_objeto(nombre: str, item: Inventario, collection=Depends(get_client)) -> JSONResponse:
@@ -131,8 +131,8 @@ def actualizar_objeto(nombre: str, item: Inventario, collection=Depends(get_clie
     except Exception as e:
         print(e)
         return JSONResponse({'msg': 'Ocurrio un error inesperado al momento de actualizar el objeto.'},
-                            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    return JSONResponse({'msg': f'{nombre} actualizado exitosamente'}, status_code=status.HTTP_200_OK)
+                            status_code=500)
+    return JSONResponse({'msg': f'{nombre} actualizado exitosamente'}, status_code=200)
 
 
 if __name__ == '__main__':
