@@ -1,5 +1,5 @@
+"""Clases que definen la estructura basica de los objetos que ingresara el usuario."""
 
-from fastapi import FastAPI
 from pydantic import BaseModel, Field, conint
 from datetime import datetime
 from enum import Enum
@@ -7,7 +7,10 @@ from typing import Optional
 
 
 class EstadoEnum(str, Enum):
-    nuevo = ''
+    nuevo = 'nuevo'
+    actualizado = 'actualizado'
+    robado = 'robado'
+    guardado = 'guardado'
 
 
 class TipoEnum(str, Enum):
