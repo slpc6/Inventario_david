@@ -39,4 +39,4 @@ class Inventario(BaseModel):
     observaciones: Optional[str] = None
     serial: str = Field(..., title="Número de serie", max_length=50)
     estado: EstadoEnum
-    fecha: datetime = Field(default_factory=datetime)
+#    fecha: datetime = Field(default_factory=datetime)

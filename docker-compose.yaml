@@ -18,6 +18,25 @@ services:
       - full  # Perfil de ejecución específico
       - back
 
+  gestion_inventario:
+    image: gestion_inventario
+    build: 
+      context: gestion_inventario/
+    container_name: gestion_inventario
+    hostname: gestion_inventario
+    networks:
+      - inventario-net
+    environment:
+      - TZ
+    ports:
+      - '5173:5173'
+    restart: always
+    depends_on:
+      - python-api
+    profiles:
+      - full
+      - front
+
 networks:
   inventario-net:
     name: inventario-net  # Define una red

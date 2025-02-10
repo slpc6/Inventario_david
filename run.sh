@@ -1,2 +1,2 @@
-docker-compose --profile back down 
-docker-compose --profile back up -d --build
+docker-compose --profile full down 
+docker-compose --profile full up -d --build
