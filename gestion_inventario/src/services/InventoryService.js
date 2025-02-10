@@ -1,6 +1,6 @@
 // src/services/InventoryService.js
 
-const API_BASE_URL = "http://localhost:8080"; // Ajusta este valor según tu configuración de Docker
+const API_BASE_URL = "api"; // Ajusta este valor según tu configuración de Docker
 
 // Listar todos los objetos
 export async function getInventory() {
